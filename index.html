@@ -3,34 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Drow Flowers - Mobile Fix</title>
+    <title>Çiçek Bahçesi</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #050505; color: white; font-family: sans-serif; touch-action: none; }
-        canvas { display: block; }
-        .ui { position: absolute; top: 10px; width: 100%; text-align: center; pointer-events: none; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000; /* Siyah arka plan */
+            touch-action: none; /* Sayfa kaymasını engelle */
+            user-select: none;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        .ui {
+            position: absolute;
+            top: 10%;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-family: sans-serif;
+            pointer-events: none;
+            z-index: 10;
+        }
         .clean-btn {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            padding: 15px 30px; background: rgba(255,255,255,0.1); border: 1px solid white;
-            color: white; border-radius: 5px; font-size: 16px; pointer-events: auto;
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid #fff;
+            color: #fff;
+            border-radius: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 20;
+            pointer-events: auto;
         }
     </style>
 </head>
 <body>
 
     <div class="ui">
-        <h2>Çiçek Çizici</h2>
-        <p>Ekrana Dokun!</p>
+        <h1>Çiçek Bahçesi</h1>
+        <p>Ekrana dokunarak çiçek ekle</p>
     </div>
 
-    <canvas id="canvas"></canvas>
-    <button class="clean-btn">Temizle</button>
+    <canvas id="flowerCanvas"></canvas>
+    <button class="clean-btn" id="reset">Temizle</button>
 
     <script>
-        const canvas = document.getElementById('canvas');
+        const canvas = document.getElementById('flowerCanvas');
         const ctx = canvas.getContext('2d');
-        const cleanBtn = document.querySelector('.clean-btn');
+        const resetBtn = document.getElementById('reset');
+        
         let flowers = [];
 
+        // Ekran boyutunu ayarla
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -43,77 +77,73 @@
                 this.x = x;
                 this.y = y;
                 this.size = 0;
-                this.maxSize = Math.random() * 25 + 15;
+                this.maxSize = Math.random() * 20 + 15;
                 this.color = `hsl(${Math.random() * 360}, 80%, 60%)`;
-                this.petals = Math.floor(Math.random() * 3) + 5;
-                this.stemHeight = Math.random() * 80 + 40;
+                this.petalCount = Math.floor(Math.random() * 3) + 5;
+            }
+
+            update() {
+                if (this.size < this.maxSize) {
+                    this.size += 0.8;
+                }
             }
 
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 
-                // Sap
-                ctx.strokeStyle = '#3e7d37';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.quadraticCurveTo(5, this.stemHeight/2, 0, this.stemHeight);
-                ctx.stroke();
-
-                // Çiçek Yaprakları
-                for (let i = 0; i < this.petals; i++) {
-                    ctx.rotate((Math.PI * 2) / this.petals);
-                    ctx.fillStyle = this.color;
+                // Yapraklar
+                for (let i = 0; i < this.petalCount; i++) {
                     ctx.beginPath();
-                    ctx.ellipse(0, this.size, this.size/1.8, this.size, 0, 0, Math.PI * 2);
+                    ctx.rotate((Math.PI * 2) / this.petalCount);
+                    ctx.fillStyle = this.color;
+                    ctx.ellipse(0, this.size, this.size / 2, this.size, 0, 0, Math.PI * 2);
                     ctx.fill();
                 }
 
-                // Orta
-                ctx.fillStyle = '#FFD700';
+                // Orta sarı kısım
                 ctx.beginPath();
-                ctx.arc(0, 0, this.size/2.5, 0, Math.PI * 2);
+                ctx.fillStyle = "#FFD700";
+                ctx.arc(0, 0, this.size / 2.5, 0, Math.PI * 2);
                 ctx.fill();
                 
                 ctx.restore();
-                if (this.size < this.maxSize) this.size += 1.2;
             }
         }
 
+        function handleInput(e) {
+            // Eğer butona tıklandıysa çiçek çıkarma
+            if (e.target.id === 'reset') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+            const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+            
+            flowers.push(new Flower(x, y));
+        }
+
+        // Hem dokunma hem tıklama için tek olay: pointerdown
+        window.addEventListener('pointerdown', handleInput);
+
         function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Temiz bir görüntü için
-            flowers.forEach(flower => flower.draw());
+            // Arka planı her karede siyahla boya
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            flowers.forEach(flower => {
+                flower.update();
+                flower.draw();
+            });
+
             requestAnimationFrame(animate);
         }
 
-        // --- HEM TELEFON HEM BİLGİSAYAR İÇİN FONKSİYON ---
-        function addFlower(e) {
-            // Eğer dokunmatikse (touch), koordinatları ona göre al
-            const x = e.touches ? e.touches[0].clientX : e.clientX;
-            const y = e.touches ? e.touches[0].clientY : e.clientY;
-            
-            // Temizle butonuna basılmadığından emin ol
-            if (e.target.tagName !== 'BUTTON') {
-                flowers.push(new Flower(x, y));
-            }
-        }
-
-        // Dokunmatik desteği
-        window.addEventListener('touchstart', (e) => {
-            addFlower(e);
-        }, { passive: false });
-
-        // Fare desteği
-        window.addEventListener('mousedown', (e) => {
-            addFlower(e);
-        });
-
-        cleanBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Butona tıklayınca çiçek oluşmasını engeller
+        resetBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             flowers = [];
         });
 
+        // Başlat
         animate();
     </script>
 </body>
