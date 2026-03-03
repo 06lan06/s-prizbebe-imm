@@ -3,68 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Çiçek Bahçesi</title>
+    <title>Seni Seviyorum Hatunum</title>
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000; /* Siyah arka plan */
-            touch-action: none; /* Sayfa kaymasını engelle */
-            user-select: none;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: #050505;
+            touch-action: none; user-select: none;
         }
-        canvas {
-            display: block;
-            width: 100vw;
-            height: 100vh;
-        }
+        canvas { display: block; }
         .ui {
-            position: absolute;
-            top: 10%;
-            width: 100%;
-            text-align: center;
-            color: white;
-            font-family: sans-serif;
-            pointer-events: none;
-            z-index: 10;
+            position: absolute; top: 10%; width: 100%;
+            text-align: center; color: white;
+            font-family: 'Times New Roman', serif;
+            pointer-events: none; z-index: 10;
         }
+        h1 { font-style: italic; font-weight: 300; letter-spacing: 2px; }
         .clean-btn {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 15px 40px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid #fff;
-            color: #fff;
-            border-radius: 30px;
-            font-size: 18px;
-            cursor: pointer;
-            z-index: 20;
-            pointer-events: auto;
+            position: absolute; bottom: 30px; left: 50%;
+            transform: translateX(-50%); padding: 12px 30px;
+            background: rgba(255, 182, 193, 0.1); /* Hafif pembe ton */
+            border: 1px solid rgba(255, 192, 203, 0.5);
+            color: #ffb6c1; border-radius: 20px;
+            cursor: pointer; z-index: 20; transition: 0.3s;
         }
     </style>
 </head>
 <body>
 
     <div class="ui">
-        <h1>Çiçek Bahçesi</h1>
-        <p>Ekrana dokunarak çiçek ekle</p>
+        <h1>Hatunuma Özel Bahçe</h1>
     </div>
 
-    <canvas id="flowerCanvas"></canvas>
-    <button class="clean-btn" id="reset">Temizle</button>
+    <canvas id="loveCanvas"></canvas>
+    <button class="clean-btn" id="reset">Bahçeyi Temizle</button>
 
     <script>
-        const canvas = document.getElementById('flowerCanvas');
+        const canvas = document.getElementById('loveCanvas');
         const ctx = canvas.getContext('2d');
         const resetBtn = document.getElementById('reset');
         
         let flowers = [];
+        let hearts = [];
+        let texts = [];
 
-        // Ekran boyutunu ayarla
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -72,79 +53,33 @@
         window.addEventListener('resize', resize);
         resize();
 
-        class Flower {
+        class TextEffect {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = 0;
-                this.maxSize = Math.random() * 20 + 15;
-                this.color = `hsl(${Math.random() * 360}, 80%, 60%)`;
-                this.petalCount = Math.floor(Math.random() * 3) + 5;
+                this.opacity = 1;
+                this.text = "Seni Seviyorum Hatunum";
             }
-
             update() {
-                if (this.size < this.maxSize) {
-                    this.size += 0.8;
-                }
+                this.y -= 0.5; // Yavaşça yüksel
+                this.opacity -= 0.007; // Yavaşça silin
             }
-
             draw() {
                 ctx.save();
-                ctx.translate(this.x, this.y);
-                
-                // Yapraklar
-                for (let i = 0; i < this.petalCount; i++) {
-                    ctx.beginPath();
-                    ctx.rotate((Math.PI * 2) / this.petalCount);
-                    ctx.fillStyle = this.color;
-                    ctx.ellipse(0, this.size, this.size / 2, this.size, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                // Orta sarı kısım
-                ctx.beginPath();
-                ctx.fillStyle = "#FFD700";
-                ctx.arc(0, 0, this.size / 2.5, 0, Math.PI * 2);
-                ctx.fill();
-                
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = "#ffb6c1"; // Toz pembe
+                ctx.font = "italic 18px 'Times New Roman'";
+                ctx.textAlign = "center";
+                ctx.fillText(this.text, this.x, this.y - 40);
                 ctx.restore();
             }
         }
 
-        function handleInput(e) {
-            // Eğer butona tıklandıysa çiçek çıkarma
-            if (e.target.id === 'reset') return;
-
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
-            const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
-            
-            flowers.push(new Flower(x, y));
-        }
-
-        // Hem dokunma hem tıklama için tek olay: pointerdown
-        window.addEventListener('pointerdown', handleInput);
-
-        function animate() {
-            // Arka planı her karede siyahla boya
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            flowers.forEach(flower => {
-                flower.update();
-                flower.draw();
-            });
-
-            requestAnimationFrame(animate);
-        }
-
-        resetBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            flowers = [];
-        });
-
-        // Başlat
-        animate();
-    </script>
-</body>
-</html>
+        class Flower {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.size = 0;
+                this.maxSize = Math.random() * 12 + 10;
+                this.color = `hsl(${Math.random() * 20 + 340}, 80%, 75%)`; // Pembe ve kırmızı tonları
+                this.petalCount = 6;
+            }
+            update() { if (this.size < this.maxSize) this.size
