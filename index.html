@@ -2,45 +2,24 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drow Flowers - Çiçek Çizici</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Drow Flowers - Mobile Fix</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #050505;
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-        }
+        body { margin: 0; overflow: hidden; background-color: #050505; color: white; font-family: sans-serif; touch-action: none; }
         canvas { display: block; }
-        .ui {
-            position: absolute;
-            top: 20px;
-            width: 100%;
-            text-align: center;
-            pointer-events: none;
-        }
-        h1 { font-weight: 300; letter-spacing: 2px; }
+        .ui { position: absolute; top: 10px; width: 100%; text-align: center; pointer-events: none; }
         .clean-btn {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid white;
-            color: white;
-            cursor: pointer;
-            transition: 0.3s;
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            padding: 15px 30px; background: rgba(255,255,255,0.1); border: 1px solid white;
+            color: white; border-radius: 5px; font-size: 16px; pointer-events: auto;
         }
-        .clean-btn:hover { background: white; color: black; }
     </style>
 </head>
 <body>
 
     <div class="ui">
-        <h1>Drow Flowers</h1>
-        <p>Ekrana Tıkla ve Çiçekleri İzle</p>
+        <h2>Çiçek Çizici</h2>
+        <p>Ekrana Dokun!</p>
     </div>
 
     <canvas id="canvas"></canvas>
@@ -50,10 +29,8 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const cleanBtn = document.querySelector('.clean-btn');
-
         let flowers = [];
 
-        // Ekran boyutunu ayarla
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -61,73 +38,81 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // Çiçek Nesnesi
         class Flower {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
                 this.size = 0;
-                this.maxSize = Math.random() * 30 + 20;
-                this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
-                this.petals = Math.floor(Math.random() * 3) + 5; // Yaprak sayısı
+                this.maxSize = Math.random() * 25 + 15;
+                this.color = `hsl(${Math.random() * 360}, 80%, 60%)`;
+                this.petals = Math.floor(Math.random() * 3) + 5;
+                this.stemHeight = Math.random() * 80 + 40;
             }
 
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 
-                // Sapı çiz
-                ctx.strokeStyle = '#2d5a27';
-                ctx.lineWidth = 3;
+                // Sap
+                ctx.strokeStyle = '#3e7d37';
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.quadraticCurveTo(10, 50, 0, 150);
+                ctx.quadraticCurveTo(5, this.stemHeight/2, 0, this.stemHeight);
                 ctx.stroke();
 
-                // Yaprakları çiz
+                // Çiçek Yaprakları
                 for (let i = 0; i < this.petals; i++) {
                     ctx.rotate((Math.PI * 2) / this.petals);
                     ctx.fillStyle = this.color;
                     ctx.beginPath();
-                    ctx.ellipse(0, this.size, this.size/2, this.size, 0, 0, Math.PI * 2);
+                    ctx.ellipse(0, this.size, this.size/1.8, this.size, 0, 0, Math.PI * 2);
                     ctx.fill();
                 }
 
-                // Ortasını çiz
-                ctx.fillStyle = '#ffdb58';
+                // Orta
+                ctx.fillStyle = '#FFD700';
                 ctx.beginPath();
-                ctx.arc(0, 0, this.size/3, 0, Math.PI * 2);
+                ctx.arc(0, 0, this.size/2.5, 0, Math.PI * 2);
                 ctx.fill();
                 
                 ctx.restore();
-
-                if (this.size < this.maxSize) this.size += 1.5; // Büyüme hızı
+                if (this.size < this.maxSize) this.size += 1.2;
             }
         }
 
-        // Animasyon Döngüsü
         function animate() {
-            ctx.fillStyle = 'rgba(5, 5, 5, 0.1)'; // İz bırakma efekti
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Temiz bir görüntü için
             flowers.forEach(flower => flower.draw());
             requestAnimationFrame(animate);
         }
 
-        // Tıklama Olayı
+        // --- HEM TELEFON HEM BİLGİSAYAR İÇİN FONKSİYON ---
+        function addFlower(e) {
+            // Eğer dokunmatikse (touch), koordinatları ona göre al
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            // Temizle butonuna basılmadığından emin ol
+            if (e.target.tagName !== 'BUTTON') {
+                flowers.push(new Flower(x, y));
+            }
+        }
+
+        // Dokunmatik desteği
+        window.addEventListener('touchstart', (e) => {
+            addFlower(e);
+        }, { passive: false });
+
+        // Fare desteği
         window.addEventListener('mousedown', (e) => {
-            flowers.push(new Flower(e.clientX, e.clientY));
+            addFlower(e);
         });
 
-        // Temizleme Butonu
-        cleanBtn.addEventListener('click', () => {
+        cleanBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Butona tıklayınca çiçek oluşmasını engeller
             flowers = [];
         });
-
-        // Otomatik bir çiçek oluştur (Resimdeki pointer mantığı gibi)
-        setTimeout(() => {
-            flowers.push(new Flower(canvas.width * 0.5, canvas.height * 0.4));
-        }, 500);
 
         animate();
     </script>
